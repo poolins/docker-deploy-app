@@ -81,12 +81,12 @@
       
       - name: Run docker container
         docker_container:
-        name: weather-app-container
-        image: weather-java-jar:latest
-        state: started
-        restart_policy: always
-        ports:
-          - "8080:8080"
+          name: weather-app-container
+          image: weather-java-jar:latest
+          state: started
+          restart_policy: always
+          ports:
+            - "8080:8080"
         
       rescue:
        - name: Clean up resources because of an error
