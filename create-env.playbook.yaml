@@ -1,0 +1,96 @@
+- name: run on local
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: Run terraform
+      terraform:
+        project_path: "./tf"
+        force_init: yes
+        state: present
+      register: trfrm
+
+    - name: Add docker host
+      add_host:
+        name: weather_bot_docker
+        groups: nodes
+        ansible_host: "{{ trfrm.outputs.instance_ip_addr.value }}"
+        ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+        
+- name: Timeout for instance creating
+  hosts: 127.0.0.1
+  connection: local     
+  
+  tasks:
+    - name: Wait for a ssh port become available
+      wait_for:
+        host: "{{ trfrm.outputs.instance_ip_addr.value }}"
+        port: 22
+      
+- name: Deploy app from docker image
+  hosts: weather_bot_docker
+  tasks:
+    - block:   
+      - name: Update apt cache
+        apt:
+          update_cache: yes
+        become: yes
+        
+      - name: Add key GPG
+        apt_key:
+          url: https://download.docker.com/linux/ubuntu/gpg
+          state: present
+      
+      - name: Add docker repository
+        apt_repository:
+          repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+          state: present
+          
+      - name: Install docker
+        apt:
+          name: docker-ce
+          state: present
+
+      - name: Check docker is active
+        service:
+          name: docker
+          enabled: yes
+      
+      - name: Ensure group "docker" exists
+        ansible.builtin.group:
+          name: docker
+          state: present
+      
+      - name: Adding ubuntu to docker group
+        user:
+          name: ubuntu
+          groups: docker
+          append: yes
+          
+      - name: Copy tar to host
+        copy:
+          src:  weather-java-jar.tar
+          dest: /home/ubuntu/project/weather-java-jar.tar
+      
+      - name: Load container from tar
+        docker_image:
+          name: weather-java-jar:latest
+          load_path: /home/ubuntu/project/weather-java-jar.tar
+          state: present
+          source: load
+      
+      - name: Run docker container
+        docker_container:
+        name: weather-app-container
+        image: weather-java-jar:latest
+        state: started
+        restart_policy: always
+        ports:
+          - "8080:8080"
+        
+      rescue:
+       - name: Clean up resources because of an error
+         terraform:
+           project_path: "./tf"
+           state: absent 
+         delegate_to: 127.0.0.1
