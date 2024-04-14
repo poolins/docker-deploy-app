@@ -70,11 +70,11 @@
           groups: docker
           append: yes
         become: yes
-          
+      
       - name: Copy tar to host
         copy:
           src:  weather-java-jar.tar
-          dest: /home/ubuntu/project/weather-java-jar.tar
+          dest: /home/ubuntu/project
       
       - name: Load container from tar
         docker_image:
