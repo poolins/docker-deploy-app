@@ -69,6 +69,7 @@
           name: ubuntu
           groups: docker
           append: yes
+        become: yes
           
       - name: Copy tar to host
         copy:
