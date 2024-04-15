@@ -76,6 +76,9 @@
         copy:
           src:  weather-java-jar.tar
           dest: /home/ubuntu/project
+          owner: ubuntu
+          group: docker
+          mode: 700
       
       - name: Load container from tar
         docker_image:
