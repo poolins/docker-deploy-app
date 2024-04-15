@@ -81,10 +81,10 @@
       - name: Copy tar to host
         copy:
           src:  weather-java-jar.tar
-          dest: /home/ubuntu/project
+          dest: /home/ubuntu/project/
           owner: ubuntu
           group: docker
-          mode: 700
+          mode: 777
         become: yes
       
       - name: Load container from tar
