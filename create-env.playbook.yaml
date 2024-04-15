@@ -72,6 +72,12 @@
           append: yes
         become: yes
       
+      - name: Restart docker service
+        become: yes
+        service:
+          name: docker
+          state: restarted
+          
       - name: Copy tar to host
         copy:
           src:  weather-java-jar.tar
