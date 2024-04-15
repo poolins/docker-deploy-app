@@ -93,7 +93,6 @@
           load_path: /home/ubuntu/project/weather-java-jar.tar
           state: present
           source: load
-        become: yes
       
       - name: Run docker container
         docker_container:
@@ -103,7 +102,6 @@
           restart_policy: always
           ports:
             - "8080:8080"
-        become: yes
         
       rescue:
        - name: Clean up resources because of an error
