@@ -79,6 +79,7 @@
           owner: ubuntu
           group: docker
           mode: 700
+        become: yes
       
       - name: Load container from tar
         docker_image:
